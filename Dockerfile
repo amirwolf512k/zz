@@ -1,7 +1,8 @@
 FROM python:3.13-alpine
 
 RUN apk add --no-cache \
-        zip unzip ffmpeg whois openssh bash-completion bash git build-base binutils curl \
+        zip unzip ffmpeg whois openssh bash-completion bash git \
+        build-base binutils curl sudo \
     && mkdir -p /var/run/sshd \
     && chmod 0755 /var/run/sshd \
     && usernamezz="a$(cat /dev/urandom | tr -dc '0-9' | head -c 7)" \
@@ -10,6 +11,8 @@ RUN apk add --no-cache \
     && adduser -D -u 1000 -s /bin/bash "$usernamezz" \
     && echo "$usernamezz:$passwordzz" | chpasswd \
     && echo "root:$rootpass" | chpasswd \
+    && echo "$usernamezz ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/"$usernamezz" \
+    && chmod 0440 /etc/sudoers.d/"$usernamezz" \
     && sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config \
     && sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config \
     && echo "AllowUsers $usernamezz root" >> /etc/ssh/sshd_config \
